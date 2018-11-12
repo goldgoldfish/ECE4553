@@ -25,7 +25,6 @@ view_nii(brain_image_test);
 For this operation the data sets should be in a folder called OneD_datain
 a folder that is in the Path. Additionally the files should have a .txt
 extension.
-
 The phenotype information is contained in an xlsx file created from the tsv
 the adhd200_preprocessed_phenotypics.tsv pheonotype file.
 %}
@@ -289,18 +288,18 @@ i = 1;
 
 pxx = fMRI_data_Ordered{i,2};
 se_mean_Ordered = zeros(size(class,1),size(pxx,2));
-se_mediann_Ordered = zeros(size(class,1),size(pxx,2));
+se_median_Ordered = zeros(size(class,1),size(pxx,2));
 se_mode_Ordered = zeros(size(class,1),size(pxx,2));
 
 for i=1:size(class,1)
     pxx = fMRI_data_Ordered{i,2};
-    for j=1:10
+    for j=1:50
         se_temp = pentropy(pxx(:,j),1);
         se_mean_Ordered(i,j) = mean(se_temp);
         se_median_Ordered(i,j) = median(se_temp);
         se_mode_Ordered(i,j) = mode(se_temp);
     end
-    i;
+    i
 end
 
 %% Plotting Site and Class Ordered Mean Entropy
@@ -330,7 +329,7 @@ i = 1;
 
 pxx = fMRI_data1{i,2};
 se_mean_Ordered1 = zeros(size(fMRI_data1,1),size(pxx,2));
-se_mediann_Ordered1 = zeros(size(fMRI_data1,1),size(pxx,2));
+se_median_Ordered1 = zeros(size(fMRI_data1,1),size(pxx,2));
 se_mode_Ordered1 = zeros(size(fMRI_data1,1),size(pxx,2));
 
 for i=1:size(fMRI_data1,1)
@@ -358,8 +357,15 @@ plot(x,class_Ordered(1:size(se_mean_Ordered1,1)),'o')
 grid on;
 
 %% Sequential Classification
+%{
+Features from se_mean_Ordered 1 to 50 were tested. No real diserable value
+was gained from this however the ordering was:[16;6;17;8;33;25;32;50;5;...
+38;26;37;20;40;4;9;31;49;42;1;29;35;24;3;12;44;41;21;45;19;18;43;22;23;...
+48;47;10;36;34;15;30;13;7;39;2;46;27;28;11;14]
+%}
 
-x = se_mean_Ordered(:,1:10);
+
+x = se_mean_Ordered(:,1:50);
 
 y = class_Ordered;
 
@@ -367,7 +373,8 @@ c = cvpartition(y,'KFold',10);
 
 fun = @(xtrain, ytrain, xtest, ytest) sum(ytest ~= classify(xtest, xtrain, ytrain));
 
-[inmodel,history] = sequentialfs(fun, x, y, 'cv', c, 'Nfeatures', 10);
+
+[inmodel,history] = sequentialfs(fun, x, y, 'cv', c, 'Nfeatures', 50);
 results = history.In(1,:);
 final = find(results(1,:));
 for p = 1:(length(history.In) - 1)
@@ -379,7 +386,7 @@ final = final'; % transposed for better visual
 
 %% Generating a Classifier
 
-LDA_power = fitcdiscr(se_mean_Ordered(:,1),class_Ordered,'CrossVal','on');
+LDA_power = fitcdiscr(se_mean_Ordered(:,16),class_Ordered,'CrossVal','on');
 
 res = kfoldPredict(LDA_power);
 
