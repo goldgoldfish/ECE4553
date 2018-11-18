@@ -293,7 +293,7 @@ se_mode_Ordered = zeros(size(class,1),size(pxx,2));
 
 for i=1:size(class,1)
     pxx = fMRI_data_Ordered{i,2};
-    for j=1:50
+    for j=1:1
         se_temp = pentropy(pxx(:,j),1);
         se_mean_Ordered(i,j) = mean(se_temp);
         se_median_Ordered(i,j) = median(se_temp);
@@ -302,21 +302,33 @@ for i=1:size(class,1)
     i
 end
 
+
+%% Median Filter
+% Not sure how useful this is
+
+med_filter = medfilt1(se_mean_Ordered(:,1));
+plot(x, med_filter)
+
 %% Plotting Site and Class Ordered Mean Entropy
 
 figure(1)
 x = 1:size(class,1);
 subplot(3,1,1)
 plot(x, se_mean_Ordered(:,1))
+plot(x, med_filter)
+title('Mean Entropy', 'FontSize', 16)
 grid on;
 grid minor;
 
 subplot(3,1,2)
+%plot(x, med_filter)
 plot(x, site_Ordered)
+title('Site', 'FontSize', 16)
 grid on;
 
 subplot(3,1,3)
 plot(x,class_Ordered,'o')
+title('Class', 'FontSize', 16)
 grid on;
 
 %% Entropy for Site 1 with Class Ordered Data
