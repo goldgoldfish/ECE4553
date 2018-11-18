@@ -249,7 +249,7 @@ for i=1:size(class,1)
     features(i,4) = l(1);
 end
 
-%% Entropy
+%% Stats (Entropy: Mean, Median, Mode)
 
 pxx = fMRI_data{i,2};
 se_mean = zeros(size(class,1),size(pxx,2));
@@ -278,7 +278,7 @@ plot(x, site)
 subplot(3,1,3)
 plot(x,class)
  
-%% Entropy with Site Sorted Data
+%% Stats (Entropy: Mean, Median, Mode) with Site Sorted Data
 
 clear se_mean_Ordered
 clear se_median_Ordered
@@ -331,7 +331,20 @@ plot(x,class_Ordered,'o')
 title('Class', 'FontSize', 16)
 grid on;
 
-%% Entropy for Site 1 with Class Ordered Data
+%% Scatter Plots Site 5
+
+for i=1:size(se_median_Ordered5,2)
+    for j=1:size(se_median_Ordered5,2)
+        scatter(se_median_Ordered5(:,i),se_median_Ordered5(:,j), [], class_site5_Ordered)
+        grid on;
+        grid minor;
+        pause
+        j
+    end
+    i    
+end
+
+%% Stats (Entropy: Mean, Median, Mode) for Site 1 with Class Ordered Data
 
 clear se_mean_Ordered1
 clear se_median_Ordered1
@@ -355,18 +368,78 @@ for i=1:size(fMRI_data1,1)
     i;
 end
 
-%% Plotting Site and Class Ordered Mean Entropy
+%% Stats (Entropy: Mean, Median, Mode) for Site 5 (NYU) with Class Ordered Data
+
+clear se_mean_Ordered5
+clear se_median_Ordered5
+clear se_mode_Ordered5
+
+i = 1;
+
+pxx = fMRI_data5{i,2};
+se_mean_Ordered5 = zeros(size(fMRI_data5,1),size(pxx,2));
+se_median_Ordered5 = zeros(size(fMRI_data5,1),size(pxx,2));
+se_mode_Ordered5 = zeros(size(fMRI_data5,1),size(pxx,2));
+
+for i=1:size(fMRI_data5,1)
+    pxx = fMRI_data5{i,2};
+    for j=1:351
+        se_temp = pentropy(pxx(:,j),1);
+        se_mean_Ordered5(i,j) = mean(se_temp);
+        se_median_Ordered5(i,j) = median(se_temp);
+        se_mode_Ordered5(i,j) = mode(se_temp);
+    end
+    i
+end
+
+%% Plotting Site 5 (NYU) and Class Ordered Mean Entropy
+
+class_site5_Ordered = fMRI_data5(:,1);
+class_site5_Ordered = cell2mat(class_site5_Ordered);
 
 figure(1)
-x = 1:size(se_mean_Ordered1,1);
+x = 1:size(se_mean_Ordered5,1);
 subplot(2,1,1)
-plot(x, se_mean_Ordered1(:,1))
+plot(x, se_median_Ordered5(:,1))
 grid on;
 grid minor;
 
 subplot(2,1,2)
-plot(x,class_Ordered(1:size(se_mean_Ordered1,1)),'o')
+plot(x,class_site5_Ordered,'o')
 grid on;
+
+%% Site 5 Zero Crossings
+
+x = size(fMRI_data{1,2},2);
+y = size(fMRI_data5{1,2},1);
+z = size(fMRI_data5,1);
+
+zero_cross = zeros(z,x);
+
+for i=1:z
+   for j=1:x
+       zero_cross_temp = 0;
+       temp = fMRI_data5(i,2);
+       temp = cell2mat(temp);
+       for k=1:(y-1)
+           if(temp(k,j)*temp(k+1,j)<0)
+               zero_cross_temp = zero_cross_temp + 1;  
+           end
+       end
+       zero_cross(i,j) = zero_cross_temp;
+   end
+   i
+end
+
+%% Cross Correlation with Site 5 Data
+
+for i=1:size(fMRI_data5{2,2},2)
+a = fMRI_data5{i,2};
+b = fMRI_data5{i+1,2};
+
+corr = xcorr(a(:,1),b(:,1));
+
+end
 
 %% Sequential Classification
 %{
@@ -396,9 +469,55 @@ end
 
 final = final'; % transposed for better visual
 
+%% Sequential Classification for Site 5
+%{
+Sequential classification of zero crossing for site 5 data with all 4
+classes
+[174;147;4;202;228;83;334;76;170;317;324;119;303;239;115;265;152;277;...
+    172;151;127;293;243;276;311;347;2;160;74;281;320;177;146;15;80;81;...
+    18;332;114;28;124;19;246;125;41;250;267;328;273;9;42;288;12;94;241;...
+    24;222;183;138;52;191;92;230;39;57;49;8;68;69;73;123;135;44;16;118;...
+    167;187;64;350;314;106;254;221;139;348;323;188;55;226;43;198;33;132;...
+    78;161;122;214;194;321;32;253;71;219;178;168;22;193;236;335;255;120;...
+    130;113;299;27;6;34;339;233;61;199;322;316;60;209;208;264;173;48;84;...
+    156;333;268;128;305;196;53;153;229;107;159;307;298;100;25;36;45;313;...
+    189;292;200;223;186;121;126;89;211;245;225;185;351;158;315;308;249;...
+    5;47;66;275;336;251;58;287;140;90;10;117;349;337;210;204;62;201;242;...
+    179;205;237;75;197;86;240;272;278;284;331;263;101;215;111;234;257;...
+    279;171;163;103;23;247;51;116;131;248;195;65;235;29;180;143;259;330;...
+    216;258;155;77;98;220;274;14;203;346;342;96;262;99;182;54;261;192;...
+    82;63;244;30;297;269;218;46;50;150;154;217;148;67;232;175;291;93;...
+    144;109;294;283;110;37;213;184;85;266;341;319;7;302;137;70;141;164;...
+    325;231;56;252;59;26;290;329;38;104;280;343;1;309;136;327;17;256;...
+    102;35;105;87;295;338;238;270;304;296;134;11;318;165;176;3;31;149;...
+    21;79;157;91;326;260;142;207;300;166;306;301;162;181;95;289;212;344;...
+    20;286;282;190;224;169;40;340;285;129;72;145;312;133;310;345;13;271;...
+    88;108;206;97;227;112]
+%}
+
+%x = se_mode_Ordered5(:,1:15);
+x = zero_cross(:,:);
+
+y = class_site5_Ordered;
+
+c = cvpartition(y,'KFold',10);
+
+fun = @(xtrain, ytrain, xtest, ytest) sum(ytest ~= classify(xtest, xtrain, ytrain));
+
+
+[inmodel,history] = sequentialfs(fun, x, y, 'cv', c, 'Nfeatures', 351);
+results = history.In(1,:);
+final = find(results(1,:));
+for p = 1:(length(history.In) - 1)
+    results((p+1),:) = xor(history.In(p,:),history.In((p+1),:));
+    final(p+1) = find(results(p+1,:));
+end
+
+final = final'; % transposed for better visual
+
 %% Generating a Classifier
 
-LDA_power = fitcdiscr(se_mean_Ordered(:,16),class_Ordered,'CrossVal','on');
+LDA_power = fitcdiscr(se_mean_Ordered5(:,10),class_site5_Ordered,'CrossVal','on');
 
 res = kfoldPredict(LDA_power);
 
@@ -415,6 +534,27 @@ for i=1:size(class)
 end
 
 acc = total/size(class,1);
+
+%% Accuracy site 5
+
+clear acc
+for b = 1:length(final)
+    feats(b) = final(b,1);
+    % test = se_mean_Ordered5(:,feats);
+    LDA_power = fitcdiscr(zero_cross(:,feats),class_site5_Ordered,'CrossVal','on');
+
+    res = kfoldPredict(LDA_power);
+
+    total = 0;
+
+    for i=1:size(class_site5_Ordered)
+       if(res(i) == class_site5_Ordered(i))
+           total = total + 1;
+       end 
+    end
+
+    acc(b,1) = total/size(class_site5_Ordered,1);
+end
 
 %% Clean Variables
 
@@ -438,7 +578,7 @@ clear fMRI_data1
 clear fMRI_data2
 clear fMRI_data3
 clear fMRI_data4
-clear fMRI_data5
+%clear fMRI_data5
 clear fMRI_data6
 clear fMRI_data7
 clear fMRI_data8
